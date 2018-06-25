@@ -53,7 +53,7 @@
     </node>
 
     <!-- Start SegNet -->
-    <node name="segnet" pkg="mav_ipp_sim" type="pyweedNet.py" output="screen">
+    <node name="segnet" pkg="mav_ipp_sim" type="pySegNet.py" output="screen">
       <remap from="image" to="camera/camera_sim/image_raw" />
     </node>
   </group>

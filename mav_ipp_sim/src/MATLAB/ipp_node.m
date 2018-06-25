@@ -12,25 +12,24 @@ process_img_req = rosmessage(process_img_srv);
 % Define static transformations required for co-ordinate conversions.
 transforms.T_VSB_CAM = ...              % Vicon sensor body -> camera.
     [0, -1.0000, 0, 0;
-    -1.0000,    0,    0,   0;
-    0,    0,   -1.0000,   -0.08;
-    0,         0,         0,    1.0000];
+    -1.0000, 0, 0, 0;
+    0, 0, -1.0000, -0.08;
+    0, 0, 0, 1.0000];
 transforms.T_MAP_W = eye(4);    % Map -> world
  
-% Field dimensions [m].
-dim_x_env = 12;
-dim_y_env = 42;
+% Environment dimensions [m].
+dim_x_env = 200;
+dim_y_env = 295;
 
 [matlab_params, planning_params, opt_params, map_params] = ...
     load_params(dim_x_env, dim_y_env);
 
-% First measurement location
-point_init = [0, 0, 10];
-% Multi-resolution lattice
+% First measurement location.
+point_init = [0, 0, 50];
+% Multi-resolution lattice.
 lattice = create_lattice(map_params, planning_params);
-% Occupancy grid
+% Occupancy grid - 3 layers for 3 classes.
 % Initialise with unknown values (probability = 0.5, likelihood = 0).
-% 3 layers: 1 - background, 2 - crop, 3 - weed.
 grid_map = zeros(map_params.dim_y, map_params.dim_x, 3);
 
 budget_spent = 0;

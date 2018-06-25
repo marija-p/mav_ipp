@@ -1,35 +1,35 @@
 function [matlab_params, planning_params, ...
     opt_params, map_params] = load_params(dim_x_env, dim_y_env)
-% Loads defaults IPP parameters for RotorS-based orthomosaic simulation.
+% Loads defaults IPP parameters for RotorS-based simulation.
 
 % Random number generator
 matlab_params.seed_num = 2;
 matlab_params.visualize = 0;
 
-% Height-dependent sensor (classifier) model
-planning_params.classifier_altitudes = [5, 10, 15];
+% Height-dependent sensor (classifier) model - causal
+planning_params.classifier_altitudes = [50, 70, 100];
 % Indexing: (class 1, class 2, class 3). Rows: predict, cols: true.
 planning_params.classifier_conf_matrices(:,:,1) = ...
-    [0.95, 0.07, 0.31;
-    0.03, 0.80, 0.04;
-    0.02, 0.13, 0.65];
+    [0.9614, 0.0219, 0.0166;
+    0.2749, 0.7007, 0.0244;
+    0.2769, 0.0430, 0.6801];
 planning_params.classifier_conf_matrices(:,:,2) = ...
-    [0.89, 0.11, 0.28;
-    0.06, 0.75, 0.13;
-    0.05, 0.14, 0.59];
+    [0.9815, 0.0138, 0.0047;
+    0.3183, 0.6705, 0.0112;
+    0.3778, 0.0483, 0.5739];
 planning_params.classifier_conf_matrices(:,:,3) = ...
-    [0.80, 0.17, 0.29;
-    0.11, 0.63, 0.21;
-    0.09, 0.20, 0.50];
+    [0.9766, 0.0224, 0.0010;
+    0.5166, 0.4820, 0.0013;
+    0.5232, 0.0865, 0.3903];
 
 % Camera fields of view (FoV)
 planning_params.sensor_fov_angle_x = 35.4;
 planning_params.sensor_fov_angle_y = 47.2;
-planning_params.min_height = 5;
-planning_params.max_height = 15;
-planning_params.max_vel = 1.5;        % [m/s]
-planning_params.max_acc = 2;          % [m/s^2]
-planning_params.time_budget = 5000;   % [s]
+planning_params.min_height = 40;
+planning_params.max_height = 100;
+planning_params.max_vel = 15;        % [m/s]
+planning_params.max_acc = 20;        % [m/s^2]
+planning_params.time_budget = 5000;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
 planning_params.measurement_frequency = 0.2;
@@ -40,7 +40,7 @@ planning_params.control_points = 4;
 % Number of lattice points at lowest altitude level
 planning_params.lattice_min_height_points = 16;
 % Distance between successive altitude levels on the lattice
-planning_params.lattice_height_increment = 5;
+planning_params.lattice_height_increment = 20;
 
 % TODO: active planning
 % Whether to use the threshold value for active planning
@@ -54,7 +54,7 @@ opt_params.cov_y = 0.2;
 opt_params.cov_z = 0.1;
 
 % Map resolution [m/cell]
-map_params.resolution = 0.1;
+map_params.resolution = 5;
 % Map dimensions [cells]
 map_params.dim_x = dim_x_env/map_params.resolution;
 map_params.dim_y = dim_y_env/map_params.resolution;

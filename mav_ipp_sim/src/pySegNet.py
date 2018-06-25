@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os.path
 import scipy
+import scipy.io as sio
 import argparse
 import math
 import cv2
@@ -27,15 +28,15 @@ sys.path.insert(0, caffe_root + 'python')
 import caffe
 
 
-class weedNet(object):
+class segNet(object):
     def __init__(self):
         self.imgSub = rospy.Subscriber("image",Image,self.ImgCallback)
         self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
         self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
         #self.clsPercPub=rospy.Publisher("clsPerc",Float32MultiArray,queue_size = 1)
         self.bridge = CvBridge()
-        self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_inference_live.prototxt'
-        self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/test_weights_5m_all_cb.caffemodel'
+        self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
+        self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
         self.net = None
         self.inputImg=None
         self.input_shape = None
@@ -61,7 +62,6 @@ class weedNet(object):
         msg.data = img.tostring()
         self.imgPub.publish(msg)
 
-
     def ImgCallback(self,data):
         try:
             self.inputImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -81,15 +81,12 @@ class weedNet(object):
         input_image = input_image.transpose((2,0,1))
         #input_image = input_image[(2,1,0),:,:] # May be required, if you do not open your data with opencv
         input_image = np.asarray([input_image])
-        #print input_image.shape
-        #end = time.time()
-        #print '%30s' % 'Resized image in ', str((end - start)*1000), 'ms'
 
         start = time.time()
         #out = net.forward_all(data=input_image)
         self.net.forward(data=input_image)
         end = time.time()
-        print '%30s' % 'Executed weedNet in ', str((end - start)*1000), 'ms'
+        print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
 
         start = time.time()
         predicted = self.net.blobs['prob'].data
@@ -133,11 +130,11 @@ class weedNet(object):
 
         return std_srvs.srv.EmptyResponse()
 
-    def Init(self):
+    def init(self):
         #ROS related things
-        rospy.init_node('pyweedNet')
+        rospy.init_node('pySegNet')
 
-        #Segnet related things
+        #SegNet related things
         self.net = caffe.Net(self.model,
                 self.weights,
                 caffe.TEST)
@@ -146,17 +143,16 @@ class weedNet(object):
         self.imgHeight=self.input_shape[2]
         self.imgWidth=self.input_shape[3]
         self.totalNumPix=self.imgHeight*self.imgWidth
-        print self.input_shape
         caffe.set_mode_cpu()
 
-        #Warmup the network.
-        dummy=np.ones(self.input_shape,dtype=np.uint8)
-        self.net.forward(data=dummy)
+        #Mapping related things
+    	rit18_val = sio.loadmat('rit18-val.mat')
+    	print rit18_val
 
 
 if __name__ == "__main__":
-        myWeedNet=weedNet();
-        myWeedNet.Init()
+        mySegNet = segNet();
+        mySegNet.init()
         rospy.spin()
         #while not rospy.is_shutdown():
-            #myWeedNet.processImg()
+            #mySegNet.processImg()
