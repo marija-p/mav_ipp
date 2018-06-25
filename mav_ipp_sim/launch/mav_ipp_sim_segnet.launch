@@ -54,7 +54,7 @@
 
     <!-- Start SegNet -->
     <node name="segnet" pkg="mav_ipp_sim" type="pySegNet.py" output="screen">
-      <remap from="image" to="camera/camera_sim/image_raw" />
+      <remap from="odometry" to="ground_truth/odometry" />
     </node>
   </group>
 
