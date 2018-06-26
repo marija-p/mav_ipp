@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # Inkyu Sa, enddl22@gmail.com
-# 19/Sep/2017 at Bonn, Flourish Integration week
+# Marija Popovic, mpopovic514@gmail.com
+# June-July 2018
 # GNU GPLv3
 
 import numpy as np
@@ -16,7 +17,9 @@ import time
 import rospy
 import Queue
 import std_srvs.srv
+import skimage
 from sensor_msgs.msg import Image
+from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import String,Int32,Int32MultiArray,MultiArrayLayout,MultiArrayDimension,Float32MultiArray
 
@@ -29,130 +32,160 @@ import caffe
 
 
 class segNet(object):
-    def __init__(self):
-        self.imgSub = rospy.Subscriber("image",Image,self.ImgCallback)
-        self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
-        self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
-        #self.clsPercPub=rospy.Publisher("clsPerc",Float32MultiArray,queue_size = 1)
-        self.bridge = CvBridge()
-        self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
-        self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
-        self.net = None
-        self.inputImg=None
-        self.input_shape = None
-        self.imgWidth=None
-        self.imgHeigh=None
-        self.output_shape = None
-        self.Soil = [0,0,255]
-        self.Plant = [255,0,0]
-        self.Weed = [0,255,0]
-        self.label_colours = np.array([self.Soil, self.Plant, self.Weed])
-        self.imgQ=Queue.Queue(maxsize=1)
-        self.outputImg=None
-        #self.totalNumPix=None
-        #self.classPercentage=None
+	def __init__(self):
+		self.odomSub = rospy.Subscriber("odometry", Odometry, self.odomCallback)
+		self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
+		self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
+		self.bridge = CvBridge()
+		self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
+		self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
+		self.net = None
+		self.inputImg=None
+		self.input_shape = None
+		self.imgWidth=None
+		self.imgHeight=None
+		self.output_shape = None
+		self.Soil = [0,0,255]
+		self.Plant = [255,0,0]
+		self.Weed = [0,255,0]
+		self.label_colours = np.array([self.Soil, self.Plant, self.Weed])
+		self.outputImg=None
+		#self.totalNumPix=None
+		self.FoV_hor = math.radians(47.2)
+		self.FoV_ver = math.radians(35.4)
 
-    def pubImage(self,img):
-        msg = Image()
-        msg.header.stamp = rospy.Time.now()
-        msg.encoding = 'bgr8'
-        msg.height = img.shape[0]
-        msg.width = img.shape[1]
-        msg.step = img.shape[1] * 3
-        msg.data = img.tostring()
-        self.imgPub.publish(msg)
+		#  Mapping
+		self.ortho_data = None
+		self.ortho_labels = None
+		self.ortho_GSD = None
+		self.mav_pose = None
 
-    def ImgCallback(self,data):
-        try:
-            self.inputImg = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            if self.outputImg is not None:
-                self.pubImage(np.uint8(self.outputImg*255))
-            #self.processImg(inputImg)
-        except CvBridgeError as e:
-            print(e)
-    
-    def processImgCallback(self, req):
-        print 'Processing image...'
+	def pubImage(self,img):
+		msg = Image()
+		msg.header.stamp = rospy.Time.now()
+		msg.encoding = 'bgr8'
+		msg.height = img.shape[0]
+		msg.width = img.shape[1]
+		msg.step = img.shape[1] * 3
+		msg.data = img.tostring()
+		self.imgPub.publish(msg)
 
-        #input_image=self.imgQ.get() #Blocking call??
-        input_image = self.inputImg
-        #input_image = cv2.resize(input_image, (self.input_shape[3],self.input_shape[2]))
-        #imgBGR=cv2.cvtColor(input_image, cv2.COLOR_RGB2BGR) #For opencv visualization
-        input_image = input_image.transpose((2,0,1))
-        #input_image = input_image[(2,1,0),:,:] # May be required, if you do not open your data with opencv
-        input_image = np.asarray([input_image])
+	def odomCallback(self,data):
+		self.mav_pose = data.pose.pose
+	
+	def processImgCallback(self, req):
+		print 'Processing images...'
 
-        start = time.time()
-        #out = net.forward_all(data=input_image)
-        self.net.forward(data=input_image)
-        end = time.time()
-        print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
+		# Crop orthomosaic to get image inputs.
+		mav_position = self.mav_pose.position
+		[img_size_y, img_size_x] = self.getImgSize(mav_position.z)
+		img_position = self.getImgPosition(mav_position) 
 
-        start = time.time()
-        predicted = self.net.blobs['prob'].data
-        output = np.squeeze(predicted[0,:,:,:])
-        #ind = np.argmax(output, axis=0)
+		input_image_rgb = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
+		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 3:6]
+		input_image_rgb = skimage.transform.resize(input_image_rgb, [480, 360], order=0)
+		input_image_rgb = skimage.transform.rotate(input_image_rgb, 90.0, resize=True)
+		#skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+		#	"test", "image.png"), input_image_rgb)
 
-        #r = ind.copy()
-        #g = ind.copy()
-        #b = ind.copy()
-        r = output[2,:,:].copy()
-        g = output[1,:,:].copy()
-        b = output[0,:,:].copy()
-        #self.classPercentage=[np.float(len(r[ind==0]))/np.float(self.totalNumPix),np.float(len(g[ind==1]))/np.float(self.totalNumPix),np.float(len(b[ind==2]))/np.float(self.totalNumPix)]
-        #print 'Class percentage: \nbg={}%, crop={}%, weed={}%'.format(self.classPercentage[0]*100,self.classPercentage[1]*100,self.classPercentage[2]*100)
-        
-        #print self.classPercentage[2]/self.classPercentage[1]
-        #tempArray=Float32MultiArray(data=self.classPercentage)
-        #self.clsPercPub.publish(tempArray)
+		input_image_ir1 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
+		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 0]
+		input_image_ir1 = skimage.transform.resize(input_image_ir1, [480, 360], order=0)
+		input_image_ir1 = skimage.transform.rotate(input_image_ir1, 90.0, resize=True)
 
-        #for l in range(0,3):
-        #    r[ind==l] = self.label_colours[l,0]
-        #    g[ind==l] = self.label_colours[l,1]
-        #    b[ind==l] = self.label_colours[l,2]
+		input_image_ir2 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
+		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 1]
+		input_image_ir2 = skimage.transform.resize(input_image_ir2, [480, 360], order=0)
+		input_image_ir2 = skimage.transform.rotate(input_image_ir2, 90.0, resize=True)
 
-        #segmentation_rgb = np.zeros((ind.shape[0], ind.shape[1], 3))
-        segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
+		input_image_ir3 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
+		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 2]
+		input_image_ir3 = skimage.transform.resize(input_image_ir3, [480, 360], order=0)
+		input_image_ir3 = skimage.transform.rotate(input_image_ir3, 90.0, resize=True)
 
-        #segmentation_rgb[:,:,0] = r/255.0
-        #segmentation_rgb[:,:,1] = g/255.0
-        #segmentation_rgb[:,:,2] = b/255.0
-        segmentation_rgb[:,:,0] = r
-        segmentation_rgb[:,:,1] = g
-        segmentation_rgb[:,:,2] = b
-        
-        end = time.time()
-        print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
+		input_image_rgb = input_image_rgb.transpose((2,0,1))
+		#input_image_ir1 = np.asarray([input_image_ir1])
+		#input_image_ir2 = np.asarray([input_image_ir2])
+		#input_image_ir3 = np.asarray([input_image_ir3])
+		#input_image_rgb = np.asarray([input_image_rgb])
 
-        segmentation_rgb = segmentation_rgb[:,:,(2,1,0)] #BGR (opencv) to RGB swap
-        self.outputImg = segmentation_rgb
-        #self.pubImage(np.uint8(segmentation_rgb*255))
+		# Forward pass through network.
+		start = time.time()
+		self.net.forward(dataIR1=input_image_ir1, dataIR2=input_image_ir2, dataIR3=input_image_ir3, dataRGB=input_image_rgb)
+		end = time.time()
+		print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
 
-        return std_srvs.srv.EmptyResponse()
+		start = time.time()
+		predicted = self.net.blobs['prob'].data
+		output = np.squeeze(predicted[0,:,:,:])
+		print output.shape
+		#ind = np.argmax(output, axis=0)
 
-    def init(self):
-        #ROS related things
-        rospy.init_node('pySegNet')
+		#r = ind.copy()
+		#g = ind.copy()
+		#b = ind.copy()
+	  #  r = output[2,:,:].copy()
+	 #   g = output[1,:,:].copy()
+	 #   b = output[0,:,:].copy()
 
-        #SegNet related things
-        self.net = caffe.Net(self.model,
-                self.weights,
-                caffe.TEST)
-        self.input_shape = self.net.blobs['data'].data.shape
-        self.output_shape = self.net.blobs['prob'].data.shape
-        self.imgHeight=self.input_shape[2]
-        self.imgWidth=self.input_shape[3]
-        self.totalNumPix=self.imgHeight*self.imgWidth
-        caffe.set_mode_cpu()
+		#for l in range(0,3):
+		#    r[ind==l] = self.label_colours[l,0]
+		#    g[ind==l] = self.label_colours[l,1]
+		#    b[ind==l] = self.label_colours[l,2]
 
-        #Mapping related things
-    	rit18_val = sio.loadmat('rit18-val.mat')
-    	print rit18_val
+		#segmentation_rgb = np.zeros((ind.shape[0], ind.shape[1], 3))
+	 #   segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
+
+		#segmentation_rgb[:,:,0] = r/255.0
+		#segmentation_rgb[:,:,1] = g/255.0
+		#segmentation_rgb[:,:,2] = b/255.0
+	#    segmentation_rgb[:,:,0] = r
+   #     segmentation_rgb[:,:,1] = g
+   #     segmentation_rgb[:,:,2] = b
+		
+   #     end = time.time()
+	#    print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
+
+   #     segmentation_rgb = segmentation_rgb[:,:,(2,1,0)] #BGR (opencv) to RGB swap
+  #      self.outputImg = segmentation_rgb
+		#self.pubImage(np.uint8(segmentation_rgb*255))
+
+		return std_srvs.srv.EmptyResponse()
+
+	def getImgSize(self, altitude):
+		img_size_y = round((2*altitude*math.tan(self.FoV_hor/2)) / self.ortho_GSD);
+		img_size_x = round((2*altitude*math.tan(self.FoV_ver/2)) / self.ortho_GSD);
+		return img_size_y, img_size_x
+
+	def getImgPosition(self, mav_position):
+		img_position = mav_position
+		img_position.x = mav_position.x/self.ortho_GSD + self.ortho_data.shape[1]/2
+		img_position.y = -mav_position.y/self.ortho_GSD + self.ortho_data.shape[0]/2
+		return img_position
+
+	def init(self):
+		#ROS related things
+		rospy.init_node('pySegNet')
+
+		#SegNet related things
+		self.net = caffe.Net(self.model, self.weights, caffe.TEST)
+		self.input_shape = self.net.blobs['data'].data.shape
+		self.output_shape = self.net.blobs['prob'].data.shape
+		self.imgHeight=self.input_shape[2]
+		self.imgWidth=self.input_shape[3]
+		self.totalNumPix=self.imgHeight*self.imgWidth
+		caffe.set_mode_cpu()
+
+		#Mapping related things
+		ortho = sio.loadmat('/home/masha/catkin_ws/src/mav_ipp/mav_ipp_sim/src/rit18-val.mat', mat_dtype=True)
+		self.ortho_data = ortho['val_data_cropped']
+		self.ortho_labels = ortho['val_labels_cropped']
+		self.ortho_GSD = ortho['GSD']
 
 
 if __name__ == "__main__":
-        mySegNet = segNet();
-        mySegNet.init()
-        rospy.spin()
-        #while not rospy.is_shutdown():
-            #mySegNet.processImg()
+		mySegNet = segNet();
+		mySegNet.init()
+		rospy.spin()
+		#while not rospy.is_shutdown():
+			#mySegNet.processImg()
