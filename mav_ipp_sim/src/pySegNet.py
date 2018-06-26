@@ -36,7 +36,6 @@ class segNet(object):
 		self.odomSub = rospy.Subscriber("odometry", Odometry, self.odomCallback)
 		self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
 		self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
-		self.bridge = CvBridge()
 		self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
 		self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
 		self.net = None
@@ -102,6 +101,8 @@ class segNet(object):
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 			"test", "image_ir3.png"), input_image_ir3)
 
+		# Convert RGB to BGR.
+		input_image_rgb = input_image_rgb[:,:,[2,1,0]]
 		input_image_rgb = input_image_rgb.transpose((2,0,1))
 		input_image_ir1 = np.asarray([input_image_ir1])
 		input_image_ir2 = np.asarray([input_image_ir2])
@@ -110,7 +111,8 @@ class segNet(object):
 
 		# Forward pass through network.
 		start = time.time()
-		self.net.forward(dataIR1=input_image_ir1, dataIR2=input_image_ir2, dataIR3=input_image_ir3, dataRGB=input_image_rgb)
+		self.net.forward(dataIR1=input_image_ir1*255, dataIR2=input_image_ir2*255,
+			dataIR3=input_image_ir3*255, dataRGB=input_image_rgb*255)
 		end = time.time()
 		print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
 
@@ -124,19 +126,20 @@ class segNet(object):
 		b = np.ones(r.shape) - r - g
 
 		# Debugging.
-		ind = np.argmax(output, axis=0)
-		scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_out_max.png"))
+		#ind = np.argmax(output, axis=0)
+		#scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+		#	"test", "image_out_max.png"))
 
+		# BGR order.
 		segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
-		segmentation_rgb[:,:,0] = r
+		segmentation_rgb[:,:,0] = b
 		segmentation_rgb[:,:,1] = g
-		segmentation_rgb[:,:,2] = b
+		segmentation_rgb[:,:,2] = r
 		end = time.time()
 		print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
 
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_out.png"), segmentation_rgb*255)
+			"test", "image_out.png"), np.uint8(segmentation_rgb*255))
 		self.pubImage(np.uint8(segmentation_rgb*255))
 
 		return std_srvs.srv.EmptyResponse()
