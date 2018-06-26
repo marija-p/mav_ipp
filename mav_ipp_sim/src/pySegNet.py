@@ -40,17 +40,10 @@ class segNet(object):
 		self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
 		self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
 		self.net = None
-		self.inputImg=None
 		self.input_shape = None
 		self.imgWidth=None
 		self.imgHeight=None
 		self.output_shape = None
-		self.Soil = [0,0,255]
-		self.Plant = [255,0,0]
-		self.Weed = [0,255,0]
-		self.label_colours = np.array([self.Soil, self.Plant, self.Weed])
-		self.outputImg=None
-		#self.totalNumPix=None
 		self.FoV_hor = math.radians(47.2)
 		self.FoV_ver = math.radians(35.4)
 
@@ -85,29 +78,35 @@ class segNet(object):
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 3:6]
 		input_image_rgb = skimage.transform.resize(input_image_rgb, [480, 360], order=0)
 		input_image_rgb = skimage.transform.rotate(input_image_rgb, 90.0, resize=True)
-		#skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-		#	"test", "image.png"), input_image_rgb)
+		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_rgb.png"), input_image_rgb)
 
 		input_image_ir1 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 0]
 		input_image_ir1 = skimage.transform.resize(input_image_ir1, [480, 360], order=0)
 		input_image_ir1 = skimage.transform.rotate(input_image_ir1, 90.0, resize=True)
+		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_ir1.png"), input_image_ir1)
 
 		input_image_ir2 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 1]
 		input_image_ir2 = skimage.transform.resize(input_image_ir2, [480, 360], order=0)
 		input_image_ir2 = skimage.transform.rotate(input_image_ir2, 90.0, resize=True)
+		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_ir2.png"), input_image_ir2)
 
 		input_image_ir3 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 2]
 		input_image_ir3 = skimage.transform.resize(input_image_ir3, [480, 360], order=0)
 		input_image_ir3 = skimage.transform.rotate(input_image_ir3, 90.0, resize=True)
+		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_ir3.png"), input_image_ir3)
 
 		input_image_rgb = input_image_rgb.transpose((2,0,1))
-		#input_image_ir1 = np.asarray([input_image_ir1])
-		#input_image_ir2 = np.asarray([input_image_ir2])
-		#input_image_ir3 = np.asarray([input_image_ir3])
-		#input_image_rgb = np.asarray([input_image_rgb])
+		input_image_ir1 = np.asarray([input_image_ir1])
+		input_image_ir2 = np.asarray([input_image_ir2])
+		input_image_ir3 = np.asarray([input_image_ir3])
+		input_image_rgb = np.asarray([input_image_rgb])
 
 		# Forward pass through network.
 		start = time.time()
@@ -115,40 +114,26 @@ class segNet(object):
 		end = time.time()
 		print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
 
+		# Result processing.
 		start = time.time()
 		predicted = self.net.blobs['prob'].data
 		output = np.squeeze(predicted[0,:,:,:])
-		print output.shape
 		#ind = np.argmax(output, axis=0)
 
-		#r = ind.copy()
-		#g = ind.copy()
-		#b = ind.copy()
-	  #  r = output[2,:,:].copy()
-	 #   g = output[1,:,:].copy()
-	 #   b = output[0,:,:].copy()
+		r = output[17,:,:].copy()
+		g = output[1,:,:].copy() + output[4,:,:].copy() + output[3,:,:].copy()
+		b = np.ones(r.shape) - r - g
 
-		#for l in range(0,3):
-		#    r[ind==l] = self.label_colours[l,0]
-		#    g[ind==l] = self.label_colours[l,1]
-		#    b[ind==l] = self.label_colours[l,2]
+		segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
+		segmentation_rgb[:,:,0] = r
+		segmentation_rgb[:,:,1] = g
+		segmentation_rgb[:,:,2] = b
+		end = time.time()
+		print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
 
-		#segmentation_rgb = np.zeros((ind.shape[0], ind.shape[1], 3))
-	 #   segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
-
-		#segmentation_rgb[:,:,0] = r/255.0
-		#segmentation_rgb[:,:,1] = g/255.0
-		#segmentation_rgb[:,:,2] = b/255.0
-	#    segmentation_rgb[:,:,0] = r
-   #     segmentation_rgb[:,:,1] = g
-   #     segmentation_rgb[:,:,2] = b
-		
-   #     end = time.time()
-	#    print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
-
-   #     segmentation_rgb = segmentation_rgb[:,:,(2,1,0)] #BGR (opencv) to RGB swap
-  #      self.outputImg = segmentation_rgb
-		#self.pubImage(np.uint8(segmentation_rgb*255))
+		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_out.png"), segmentation_rgb*255)
+		self.pubImage(np.uint8(segmentation_rgb*255))
 
 		return std_srvs.srv.EmptyResponse()
 
@@ -173,7 +158,6 @@ class segNet(object):
 		self.output_shape = self.net.blobs['prob'].data.shape
 		self.imgHeight=self.input_shape[2]
 		self.imgWidth=self.input_shape[3]
-		self.totalNumPix=self.imgHeight*self.imgWidth
 		caffe.set_mode_cpu()
 
 		#Mapping related things
