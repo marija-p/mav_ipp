@@ -118,11 +118,15 @@ class segNet(object):
 		start = time.time()
 		predicted = self.net.blobs['prob'].data
 		output = np.squeeze(predicted[0,:,:,:])
-		#ind = np.argmax(output, axis=0)
 
 		r = output[17,:,:].copy()
 		g = output[1,:,:].copy() + output[4,:,:].copy() + output[3,:,:].copy()
 		b = np.ones(r.shape) - r - g
+
+		# Debugging.
+		ind = np.argmax(output, axis=0)
+		scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_out_max.png"))
 
 		segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
 		segmentation_rgb[:,:,0] = r
