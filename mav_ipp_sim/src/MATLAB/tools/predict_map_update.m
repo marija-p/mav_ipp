@@ -28,23 +28,20 @@ submap = round(logodds_to_prob(submap));
 % Find the confusion matrix corresponding to the current altitude.
 [~, ind_altitude] = min(abs(planning_params.classifier_altitudes - pos(3)));
 conf_matrix = planning_params.classifier_conf_matrices(:,:,ind_altitude);
+% Diagnostic.
+conf_matrix = conf_matrix ./ repmat(sum(conf_matrix,1), ...
+    [size(conf_matrix,2),1]);
 
 % Mapping strategy #2 (3 layers).
 % Initialize likelihood matrix for each cell in the submap.
-likelihoods = zeros(size(submap));
+likelihoods = ones(size(submap));
 
-% Calculate observation likelihoods based on possible observations.
-for i = 1:size(likelihoods,1)
-    for j = 1:size(likelihoods,2)
-        for k = 1:size(likelihoods,3)
-            if (submap(i,j,k) == 1)
-                likelihoods(i,j,k) = conf_matrix(k,k);
-            else
-                likelihoods(i,j,k) = sum(conf_matrix(k,setdiff(1:3, k)));
-            end
-        end
-    end
-end
+% Calculate observation likelihoods based on most likely observation.
+for k = 1:size(likelihoods,3)
+    class_likelihood = likelihoods(:,:,k)*conf_matrix(k,k);
+    class_likelihood(submap(:,:,k) == 0) = ...
+        sum(conf_matrix(k,setdiff(1:3, k)));
+    likelihoods(:,:,k) = class_likelihood;
 end
 
 % Calculate observation likelihoods based on expectation.
@@ -75,7 +72,6 @@ end
 %     end
 % end
 % 
-
 likelihoods = prob_to_logodds(likelihoods);
  
 % Update the grid map based on prediction.
