@@ -19,7 +19,7 @@ transforms.T_MAP_W = eye(4);    % Map -> world
  
 % Environment dimensions [m].
 dim_x_env = 200;
-dim_y_env = 295;
+dim_y_env = 290;
 
 [matlab_params, planning_params, opt_params, map_params] = ...
     load_params(dim_x_env, dim_y_env);
@@ -73,7 +73,6 @@ while (true)
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_params.measurement_frequency);
-    
     disp(points_meas)
     
     % Take measurements along path, updating the grid map.

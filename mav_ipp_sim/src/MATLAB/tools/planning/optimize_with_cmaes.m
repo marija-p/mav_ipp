@@ -1,7 +1,7 @@
 function [path_optimized] = optimize_with_cmaes(path, grid_map, map_params, ...
     planning_params, opt_params)
-% Optimizes a polynomial path (defined by control points) using Covariance
-% Matrix Adaptation Evolutionary Strategy (CMA-ES).
+% Optimizes a polynomial path (defined by control points) using
+% Covariance Matrix Adaptation Evolutionary Strategy (CMA-ES).
 % ---
 % M Popovic 2018
 %
