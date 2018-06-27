@@ -104,7 +104,8 @@ grid_map = update_map(submap, grid_map, submap_coordinates);
 % Debugging - visualisation.
 for k = 1:3
     subplot(1,3,k)
-    imagesc(grid_map(:,:,k))
+    imagesc(logodds_to_prob(grid_map(:,:,k)))
+    caxis([0 1])
 end
 
 end
