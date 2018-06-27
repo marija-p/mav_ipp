@@ -28,7 +28,7 @@ submap = round(logodds_to_prob(submap));
 % Find the confusion matrix corresponding to the current altitude.
 [~, ind_altitude] = min(abs(planning_params.classifier_altitudes - pos(3)));
 conf_matrix = planning_params.classifier_conf_matrices(:,:,ind_altitude);
-% Diagnostic.
+% Causal -> diagnostic.
 conf_matrix = conf_matrix ./ repmat(sum(conf_matrix,1), ...
     [size(conf_matrix,2),1]);
 

@@ -2,7 +2,7 @@ function path = search_lattice(point_init, lattice, grid_map, map_params, ...
     planning_params)
 % Performs a greedy grid search over a list of candidates to identify
 % most promising points to visit based on an informative objective.
-% Starting point is fixed (no measurement taken here)
+% Starting point is fixed (no measurement taken here).
 % ---
 % Inputs:
 % point_init: starting location
