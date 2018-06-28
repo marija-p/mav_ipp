@@ -26,7 +26,7 @@ from std_msgs.msg import String,Int32,Int32MultiArray,MultiArrayLayout,MultiArra
 
 sys.path.append('/usr/local/lib/python2.7/site-packages')
 # Make sure that caffe is on the python path:
-caffe_root = '/home/masha/catkin_ws/src/weedNet-devel/caffe-segnet-cudnn5/'
+caffe_root = '/home/marija/catkin_ws/src/weedNet-devel/caffe-segnet-cudnn5/'
 sys.path.insert(0, caffe_root + 'python')
 import caffe
 
@@ -36,8 +36,8 @@ class segNet(object):
 		self.odomSub = rospy.Subscriber("odometry", Odometry, self.odomCallback)
 		self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
 		self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
-		self.model='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
-		self.weights='/home/masha/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
+		self.model='/home/marija/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
+		self.weights='/home/marija/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
 		self.net = None
 		self.input_shape = None
 		self.imgWidth=None
@@ -168,7 +168,7 @@ class segNet(object):
 		caffe.set_mode_cpu()
 
 		#Mapping related things
-		ortho = sio.loadmat('/home/masha/catkin_ws/src/mav_ipp/mav_ipp_sim/src/rit18-val.mat', mat_dtype=True)
+		ortho = sio.loadmat('/home/marija/catkin_ws/src/mav_ipp/mav_ipp_sim/src/rit18-val.mat', mat_dtype=True)
 		self.ortho_data = ortho['val_data_cropped']
 		self.ortho_labels = ortho['val_labels_cropped']
 		self.ortho_GSD = ortho['GSD']
