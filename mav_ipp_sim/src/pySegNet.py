@@ -126,9 +126,9 @@ class segNet(object):
 		b = np.ones(r.shape) - r - g
 
 		# Debugging.
-		#ind = np.argmax(output, axis=0)
-		#scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-		#	"test", "image_out_max.png"))
+		ind = np.argmax(output, axis=0)
+		scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+			"test", "image_out_max.png"))
 
 		# BGR order.
 		segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))

@@ -1,7 +1,7 @@
 img_seg_sub = rossubscriber('/firefly/image_seg');
 pause(1);
 
-i = 0;
+i = 1;
 
 while(true)
     img_seg_msg = receive(img_seg_sub);
