@@ -106,6 +106,7 @@ for k = 1:3
     subplot(1,3,k)
     imagesc(logodds_to_prob(grid_map(:,:,k)))
     caxis([0 1])
+    set(gca,'YDir','normal')
 end
 
 end
