@@ -83,6 +83,7 @@ for k = 1:3
 end
 
 submap = imrotate(submap, -90);
+submap = submap(end:-1:1,:,:);
 submap = prob_to_logodds(submap./255);
 
 % submap = imresize(img_seg_trimmed, ...

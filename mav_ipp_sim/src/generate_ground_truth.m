@@ -39,7 +39,7 @@ for k = 1:3
     subplot(1,3,k)
     imagesc(ground_truth(:,:,k))
     caxis([0 1])
-    %set(gca,'YDir','normal')
+    set(gca,'YDir','normal')
     title(classes{k})
     axis equal
 end
