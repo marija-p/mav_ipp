@@ -103,8 +103,7 @@ grid_map = update_map(submap, grid_map, submap_coordinates);
 
 % Debugging - visualisation.
 classes = {'Water', 'BVR', 'Background'};
-is_figure_open = get(0, 'Children');
-if (~is_figure_open)
+if isempty(get(0, 'Children');
     figure;
 end
 set(gcf, 'Position', [675, 608, 1006, 370]);
