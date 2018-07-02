@@ -42,6 +42,9 @@ planning_params.lattice_min_height_points = 16;
 % Distance between successive altitude levels on the lattice
 planning_params.lattice_height_increment = 20;
 
+% Minimum distance before a waypoint is considered reached.
+planning_params.achievement_dist = 2;
+
 % TODO: active planning
 % Whether to use the threshold value for active planning
 planning_params.use_threshold = 1;

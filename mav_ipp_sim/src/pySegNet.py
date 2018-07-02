@@ -33,15 +33,16 @@ import caffe
 
 class segNet(object):
 	def __init__(self):
-		self.odomSub = rospy.Subscriber("odometry", Odometry, self.odomCallback)
-		self.imgPub = rospy.Publisher("image_seg", Image, queue_size=1)
-		self.processImgService = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
+		self.odom_sub = rospy.Subscriber("odometry", Odometry, self.odomCallback)
+		self.img_pub = rospy.Publisher("image_seg", Image, queue_size=1)
+		self.process_img_srv = rospy.Service("process_image", std_srvs.srv.Empty, self.processImgCallback)
 		self.model='/home/marija/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/segnet_ipp_rit18_inference_live.prototxt'
 		self.weights='/home/marija/catkin_ws/src/weedNet-devel/SegNet-Tutorial/Models/Inference/rit18_weights.caffemodel'
 		self.net = None
 		self.input_shape = None
-		self.imgWidth=None
-		self.imgHeight=None
+		self.img_width=None
+		self.img_height=None
+		self.img_counter=0
 		self.output_shape = None
 		self.FoV_hor = math.radians(47.2)
 		self.FoV_ver = math.radians(35.4)
@@ -60,7 +61,7 @@ class segNet(object):
 		msg.width = img.shape[1]
 		msg.step = img.shape[1] * 3
 		msg.data = img.tostring()
-		self.imgPub.publish(msg)
+		self.img_pub.publish(msg)
 
 	def odomCallback(self,data):
 		self.mav_pose = data.pose.pose
@@ -78,28 +79,28 @@ class segNet(object):
 		input_image_rgb = skimage.transform.resize(input_image_rgb, [480, 360], order=0)
 		input_image_rgb = skimage.transform.rotate(input_image_rgb, 90.0, resize=True)
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_rgb.png"), input_image_rgb)
+			"test", "image_rgb%04i.png" %self.img_counter), input_image_rgb)
 
 		input_image_ir1 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 0]
 		input_image_ir1 = skimage.transform.resize(input_image_ir1, [480, 360], order=0)
 		input_image_ir1 = skimage.transform.rotate(input_image_ir1, 90.0, resize=True)
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_ir1.png"), input_image_ir1)
+			"test", "image_ir1%04i.png" %self.img_counter), input_image_ir1)
 
 		input_image_ir2 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 1]
 		input_image_ir2 = skimage.transform.resize(input_image_ir2, [480, 360], order=0)
 		input_image_ir2 = skimage.transform.rotate(input_image_ir2, 90.0, resize=True)
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_ir2.png"), input_image_ir2)
+			"test", "image_ir2%04i.png" %self.img_counter), input_image_ir2)
 
 		input_image_ir3 = self.ortho_data[int(img_position.y-(img_size_y/2)):int(img_position.y+(img_size_y/2)), 
 		int(img_position.x-(img_size_x/2)):int(img_position.x+(img_size_x/2)), 2]
 		input_image_ir3 = skimage.transform.resize(input_image_ir3, [480, 360], order=0)
 		input_image_ir3 = skimage.transform.rotate(input_image_ir3, 90.0, resize=True)
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_ir3.png"), input_image_ir3)
+			"test", "image_ir3%04i.png" %self.img_counter), input_image_ir3)
 
 		# Convert RGB to BGR.
 		input_image_rgb = input_image_rgb[:,:,[2,1,0]]
@@ -128,7 +129,7 @@ class segNet(object):
 		# Debugging.
 		ind = np.argmax(output, axis=0)
 		scipy.misc.toimage(ind, low=0.0, high=output.shape[0]-1).save(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_out_max.png"))
+			"test", "image_out_max%04i.png" %self.img_counter))
 
 		# BGR order.
 		segmentation_rgb = np.zeros((r.shape[0], r.shape[1], 3))
@@ -139,8 +140,10 @@ class segNet(object):
 		print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
 
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-			"test", "image_out.png"), np.uint8(segmentation_rgb*255))
+			"test", "image_out%04i.png" %self.img_counter), np.uint8(segmentation_rgb*255))
 		self.pubImage(np.uint8(segmentation_rgb*255))
+
+		self.img_counter += 1
 
 		return std_srvs.srv.EmptyResponse()
 
@@ -163,8 +166,8 @@ class segNet(object):
 		self.net = caffe.Net(self.model, self.weights, caffe.TEST)
 		self.input_shape = self.net.blobs['data'].data.shape
 		self.output_shape = self.net.blobs['prob'].data.shape
-		self.imgHeight=self.input_shape[2]
-		self.imgWidth=self.input_shape[3]
+		self.img_height=self.input_shape[2]
+		self.img_width=self.input_shape[3]
 		caffe.set_mode_cpu()
 
 		#Mapping related things
