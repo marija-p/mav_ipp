@@ -26,13 +26,13 @@ planning_params.classifier_conf_matrices(:,:,3) = ...
 planning_params.sensor_fov_angle_x = 35.4;
 planning_params.sensor_fov_angle_y = 47.2;
 planning_params.min_height = 40;
-planning_params.max_height = 100;
+planning_params.max_height = 160;
 planning_params.max_vel = 15;        % [m/s]
 planning_params.max_acc = 20;        % [m/s^2]
 planning_params.time_budget = 5000;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
-planning_params.measurement_frequency = 0.2;
+planning_params.measurement_frequency = 0.1;
 
 % Number of control points for a polynomial (start point fixed)
 planning_params.control_points = 5;
@@ -40,7 +40,7 @@ planning_params.control_points = 5;
 % Number of lattice points at lowest altitude level
 planning_params.lattice_min_height_points = 16;
 % Distance between successive altitude levels on the lattice
-planning_params.lattice_height_increment = 20;
+planning_params.lattice_height_increment = 40;
 
 % Minimum distance before a waypoint is considered reached.
 planning_params.achievement_dist = 2;

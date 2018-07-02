@@ -103,6 +103,12 @@ grid_map = update_map(submap, grid_map, submap_coordinates);
 
 % Debugging - visualisation.
 classes = {'Water', 'BVR', 'Background'};
+is_figure_open = get(0, 'Children');
+if (~is_figure_open)
+    figure;
+end
+set(gcf, 'Position', [675, 608, 1006, 370]);
+
 for k = 1:3
     subplot(1,3,k)
     imagesc(logodds_to_prob(grid_map(:,:,k)))
@@ -111,6 +117,5 @@ for k = 1:3
     title(classes{k})
     axis equal
 end
-set(gcf, 'Position', [335, 528, 1074, 425])
 
 end
