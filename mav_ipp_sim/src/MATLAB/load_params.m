@@ -35,7 +35,7 @@ planning_params.time_budget = 5000;  % [s]
 planning_params.measurement_frequency = 0.2;
 
 % Number of control points for a polynomial (start point fixed)
-planning_params.control_points = 4;
+planning_params.control_points = 5;
 
 % Number of lattice points at lowest altitude level
 planning_params.lattice_min_height_points = 16;

@@ -47,7 +47,10 @@ while (true)
         planning_params);
     obj = compute_objective(path, grid_map, map_params, planning_params);
     disp(['Objective before optimization: ', num2str(obj)]);
-
+    disp('Path before optimization: ')
+    disp(path)
+    keyboard
+    
     %% STEP 2. Path optimization.
     if (strcmp(opt_params.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_params, ...
@@ -73,13 +76,14 @@ while (true)
     % Sample trajectory to find locations to take measurements at.
     [times_meas, points_meas, ~, ~] = ...
         sample_trajectory(trajectory, 1/planning_params.measurement_frequency);
+    disp('Measurement points: ')
     disp(points_meas)
     
     % Take measurements along path, updating the grid map.
     for i = 1:size(points_meas,1)
         
         % Budget has been spent.
-        if ((time_elapsed + times_meas(i)) > planning_parameters.time_budget)
+        if ((time_elapsed + times_meas(i)) > planning_params.time_budget)
             points_meas = points_meas(1:i-1,:);
             times_meas = times_meas(1:i-1);
             budget_spent = 1;
@@ -98,6 +102,7 @@ while (true)
         pose_msg.Pose.Position.Y = target_point(2);
         pose_msg.Pose.Position.Z = target_point(3);
         send(pose_pub, pose_msg)
+        disp('Sent pose message!')
         
         % Go to target measurement point.
         reached_point = false;
@@ -145,32 +150,25 @@ while (true)
         
         % Update the map.
         grid_map = take_measurement_at_point(x_odom_MAP_CAM, img_seg, grid_map, ...
-            map_parameters, planning_parameters);
+            map_parameters, planning_params);
         metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
         metrics.maps = cat(3, metrics.maps, grid_map.m);
         metrics.odoms = [metrics.odoms; odom_msg];
         
     end
 
-    Y_sigma = sqrt(diag(grid_map.P)');
-    P_post = reshape(2*Y_sigma,predict_dim_y,predict_dim_x);
-    disp(['Trace after execution: ', num2str(trace(grid_map.P))]);
+    disp(['Entropy after execution: ', num2str(get_map_entropy(grid_map))]);
     disp(['Time after execution: ', num2str(get_trajectory_total_time(trajectory))]);
-    gain = P_trace_prev - trace(grid_map.P);
-    if (strcmp(planning_parameters.obj, 'rate'))
-        cost = max(get_trajectory_total_time(trajectory), 1/planning_parameters.measurement_frequency);
-        disp(['Objective after execution: ', num2str(-gain/cost)]);
-    elseif (strcmp(planning_parameters.obj, 'exponential'))
-        cost = get_trajectory_total_time(trajectory);
-        disp(['Objective after execution: ', num2str(-gain*exp(-planning_parameters.lambda*cost))]);
-    end
+    gain = entropy_prev - get_map_entropy(grid_map);
+    cost = max(get_trajectory_total_time(trajectory), 1/planning_params.measurement_frequency);
+    disp(['Objective after execution: ', num2str(-gain/cost)]);
     
     metrics.points_meas = [metrics.points_meas; points_meas];
     metrics.times = [metrics.times; time_elapsed + times_meas'];
 
     % Update variables for next planning stage.
     metrics.path_travelled = [metrics.path_travelled; path_optimized];
-    P_trace_prev = trace(grid_map.P);
+    entropy_prev = get_map_entropy(grid_map);
     
     point_prev = path_optimized(end,:); % End of trajectory (not last meas. point!)
     time_elapsed = time_elapsed + get_trajectory_total_time(trajectory);  
