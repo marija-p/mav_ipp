@@ -5,6 +5,7 @@ pose_msg = rosmessage(pose_pub);
 
 odom_sub = rossubscriber('/firefly/ground_truth/odometry');
 img_seg_sub = rossubscriber('/firefly/image_seg');
+pause(1);
 
 process_img_srv = rossvcclient('/firefly/process_image');
 process_img_req = rosmessage(process_img_srv);
@@ -23,6 +24,7 @@ dim_y_env = 290;
 
 [matlab_params, planning_params, opt_params, map_params] = ...
     load_params(dim_x_env, dim_y_env);
+metrics = initialise_metrics();
 
 % First measurement location.
 point_init = [0, 0, 50];
@@ -35,6 +37,9 @@ grid_map = zeros(map_params.dim_y, map_params.dim_x, 3);
 budget_spent = 0;
 time_elapsed = 0;
 point_prev = point_init;
+entropy_prev = get_map_entropy(grid_map);
+
+img_counter = 0;
 
 %% Planning-Execution Loop %%
 
@@ -49,7 +54,6 @@ while (true)
     disp(['Objective before optimization: ', num2str(obj)]);
     disp('Path before optimization: ')
     disp(path)
-    keyboard
     
     %% STEP 2. Path optimization.
     if (strcmp(opt_params.opt_method, 'cmaes'))
@@ -102,7 +106,6 @@ while (true)
         pose_msg.Pose.Position.Y = target_point(2);
         pose_msg.Pose.Position.Z = target_point(3);
         send(pose_pub, pose_msg)
-        disp('Sent pose message!')
         
         % Go to target measurement point.
         reached_point = false;
@@ -114,7 +117,7 @@ while (true)
             T_W_VSB = trvec2tform(x_odom_W_VSB);
             T_MAP_CAM = transforms.T_MAP_W * T_W_VSB * transforms.T_VSB_CAM;
             x_odom_MAP_CAM = tform2trvec(T_MAP_CAM);
-            if (pdist2(points_meas(i,:), x_odom_MAP_CAM) < achievement_dist)
+            if (pdist2(points_meas(i,:), x_odom_MAP_CAM) < planning_params.achievement_dist)
                 reached_point = true;
             end
         end
@@ -122,23 +125,24 @@ while (true)
         pause(0.5);
 
         % Request forward pass through classifier.
-        process_img_srv = call(process_img_srv, process_img_req, 'Timeout', 100);
+        process_img_res = call(process_img_srv, process_img_req);
+%        image_msg = receive(img_seg_sub);
         
         % Make sure delay between image/odom messages is small enough.
-        delay = 100;
-        while (abs(delay) > 0.07)
-            img_seg_msg = receive(img_seg_sub);
-            odom_msg = receive(odom_sub);
-            delay = (img_seg_msg.Header.Stamp.Nsec - odom_msg.Header.Stamp.Nsec)*10^-9;
-        end
-        
+%         delay = 100;
+%         while (abs(delay) > 0.07)
+%             disp('Here')
+        odom_msg = receive(odom_sub);
+%             delay = (img_seg_msg.Header.Stamp.Nsec - odom_msg.Header.Stamp.Nsec)*10^-9;
+%         end
+
         % Get transform: map -> camera.
         x_odom_W_VSB = [odom_msg.Pose.Pose.Position.X, ...
             odom_msg.Pose.Pose.Position.Y, odom_msg.Pose.Pose.Position.Z];
         quat_odom_W_VSB = [odom_msg.Pose.Pose.Orientation.W, ...
             odom_msg.Pose.Pose.Orientation.X, odom_msg.Pose.Pose.Orientation.Y, ...
             odom_msg.Pose.Pose.Orientation.Z];
-        disp(['Taking meas. at: ', num2str(x_odom_W_VSB)]);
+        disp(['Taking meas. at: ', num2str(x_odom_W_VSB,4)]);
  
         T_W_VSB = quat2tform(quat_odom_W_VSB);
         T_W_VSB(1:3, 4) = x_odom_W_VSB';
@@ -146,13 +150,15 @@ while (true)
         x_odom_MAP_CAM = tform2trvec(T_MAP_CAM);
         
         % Get segmented image.
-        img_seg = readImage(img_seg_msg);
+        img_seg = readImage(img_seg_sub.LatestMessage);
+        imwrite(img_seg, fullfile([pwd, '/images/image', ...
+            num2str(img_counter,'%04d'), '.png']));
+        img_counter = img_counter + 1;
         
         % Update the map.
         grid_map = take_measurement_at_point(x_odom_MAP_CAM, img_seg, grid_map, ...
-            map_parameters, planning_params);
-        metrics.P_traces = [metrics.P_traces; trace(grid_map.P)];
-        metrics.maps = cat(3, metrics.maps, grid_map.m);
+            map_params, planning_params);
+        metrics.entropies = [metrics.entropies; get_map_entropy(grid_map)];
         metrics.odoms = [metrics.odoms; odom_msg];
         
     end
@@ -176,5 +182,7 @@ while (true)
     if (budget_spent)
         break;
     end
+    
+    keyboard;
     
 end

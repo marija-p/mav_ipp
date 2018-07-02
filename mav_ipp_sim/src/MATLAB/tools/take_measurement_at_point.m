@@ -102,11 +102,15 @@ submap = prob_to_logodds(submap./255);
 grid_map = update_map(submap, grid_map, submap_coordinates);
 
 % Debugging - visualisation.
+classes = {'Water', 'BVR', 'Background'};
 for k = 1:3
     subplot(1,3,k)
     imagesc(logodds_to_prob(grid_map(:,:,k)))
     caxis([0 1])
     set(gca,'YDir','normal')
+    title(classes{k})
+    axis equal
 end
+set(gcf, 'Position', [335, 528, 1074, 425])
 
 end
