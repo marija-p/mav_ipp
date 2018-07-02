@@ -2,14 +2,14 @@
 [ortho_dim_y, ortho_dim_x] = size(val_labels_cropped);
 
 % Map dimensions.
-dim_x = 40;
-dim_y = 58;
+map_dim_x = 40;
+map_dim_y = 58;
 
-ground_truth = zeros(dim_y, dim_x, 3);
+ground_truth = zeros(map_dim_y, map_dim_x, 3);
 
 % Extract ground truth by checking classes for each block of pixels (cell).
-pixel_indices_y = round(linspace(1, ortho_dim_y, dim_y+1));
-pixel_indices_x = round(linspace(1, ortho_dim_x, dim_x+1));
+pixel_indices_y = round(linspace(1, ortho_dim_y, map_dim_y+1));
+pixel_indices_x = round(linspace(1, ortho_dim_x, map_dim_x+1));
 
 % Class labels.
 label_1 = [17];
