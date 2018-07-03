@@ -26,6 +26,10 @@ dim_y_env = 290;
     load_params(dim_x_env, dim_y_env);
 metrics = initialise_metrics();
 
+if (~exist('ground_truth'))
+    load ground_truth.mat
+end
+
 % First measurement location.
 point_init = [0, 0, 50];
 % Multi-resolution lattice.
@@ -161,7 +165,9 @@ while (true)
         grid_map = take_measurement_at_point(x_odom_MAP_CAM, img_seg, grid_map, ...
             map_params, planning_params);
         metrics.entropies = [metrics.entropies; get_map_entropy(grid_map)];
+        metrics.rmses = [metrics.rmses; get_map_rmse(grid_map, ground_truth)];
         metrics.odoms = [metrics.odoms; odom_msg];
+        metrics.grid_maps(:,:,:,img_counter+1) = grid_map;
         
     end
 

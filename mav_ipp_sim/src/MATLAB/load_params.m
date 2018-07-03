@@ -32,7 +32,7 @@ planning_params.max_acc = 20;        % [m/s^2]
 planning_params.time_budget = 5000;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
-planning_params.measurement_frequency = 0.2;
+planning_params.measurement_frequency = 0.1;
 
 % Number of control points for a polynomial (start point fixed)
 planning_params.control_points = 5;
