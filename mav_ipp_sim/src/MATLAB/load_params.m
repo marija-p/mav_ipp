@@ -32,7 +32,7 @@ planning_params.max_acc = 20;        % [m/s^2]
 planning_params.time_budget = 5000;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
-planning_params.measurement_frequency = 0.1;
+planning_params.measurement_frequency = 0.2;
 
 % Number of control points for a polynomial (start point fixed)
 planning_params.control_points = 5;
@@ -49,12 +49,12 @@ planning_params.achievement_dist = 2;
 % Whether to use the threshold value for active planning
 planning_params.use_threshold = 1;
 
-opt_params.max_iters = 15;
+opt_params.max_iters = 200;
 opt_params.opt_method = 'cmaes'; % 'fmc'/cmaes'/'none'/'bo'
 % Covariances in each search dimension
-opt_params.cov_x = 0.2;
-opt_params.cov_y = 0.2;
-opt_params.cov_z = 0.1;
+opt_params.cov_x = 20;
+opt_params.cov_y = 20;
+opt_params.cov_z = 10;
 
 % Map resolution [m/cell]
 map_params.resolution = 5;

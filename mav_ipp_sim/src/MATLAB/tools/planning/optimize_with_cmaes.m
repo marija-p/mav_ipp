@@ -19,7 +19,6 @@ opt.PopSize = 25;
 opt.SaveVariables = 'off';
 opt.MaxIter = opt_params.max_iters;
 opt.Seed = randi(2^10);
-
 % Set bounds and covariances.
 LBounds = [-dim_x_env/2;-dim_y_env/2;planning_params.min_height];
 UBounds = [dim_x_env/2;dim_y_env/2;planning_params.max_height];
@@ -30,7 +29,8 @@ cov = repmat(cov, size(path,1)-1, 1);
 
 % Remove starting point (as this is fixed).
 path_initial = reshape(path(2:end,:)', [], 1);
-path_optimized = cmaes('optimize_points', path_initial, cov, opt, path(1,:), ...
+[path_optimized, obj_min, count_eval, stop_flag, out] = ...
+    cmaes('optimize_points', path_initial, cov, opt, path(1,:), ...
     grid_map, map_params, planning_params);
 path_optimized = reshape(path_optimized, 3, [])';
 path_optimized = [path(1,:); path_optimized];
