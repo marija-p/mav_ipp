@@ -23,23 +23,21 @@ trajectory = plan_path_waypoints(control_points, ...
 [~, points_meas, ~, ~] = sample_trajectory(trajectory, ...
     1/planning_params.measurement_frequency);
 
-entropy_i = get_map_entropy(grid_map);
+if (planning_params.do_adaptive_planning)
+    grid_map_interesting = ...
+        grid_map(:, :, planning_params.interesting_class_ind);
+    entropy_i = ...
+        get_map_entropy(grid_map_interesting(find(grid_map_interesting >= planning_params.lower_threshold)));
+else
+    entropy_i = get_map_entropy(grid_map);
+end
+
 
 % Discard path if it is too long.
 if (size(points_meas,1) > 10)
     obj = Inf;
     return;
 end
-
-% if (any(points_meas(:,1) > dim_x_env/2) || ...
-%         any(points_meas(:,2) > dim_y_env/2) || ...
-%         any(points_meas(:,1) < -dim_x_env/2) || ...
-%         any(points_meas(:,2) < -dim_y_env/2) || ...
-%         any(points_meas(:,3) < planning_params.min_height) || ...
-%         any(points_meas(:,3) > planning_params.max_height))
-%     obj = Inf;
-%     return;
-% end
 
 % Predict measurements along the path.
 for i = 1:size(points_meas,1)
@@ -64,7 +62,14 @@ for i = 1:size(points_meas,1)
     end
 end
 
-entropy_f = get_map_entropy(grid_map);
+if (planning_params.do_adaptive_planning)
+    grid_map_interesting = ...
+        grid_map(:, :, planning_params.interesting_class_ind);
+    entropy_f = ...
+        get_map_entropy(grid_map_interesting(find(grid_map_interesting >= planning_params.lower_threshold)));
+else
+    entropy_f = get_map_entropy(grid_map);
+end
 
 % Formulate objective.
 gain = entropy_i - entropy_f;

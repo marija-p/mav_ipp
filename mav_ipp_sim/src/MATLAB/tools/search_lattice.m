@@ -15,7 +15,14 @@ function path = search_lattice(point_init, lattice, grid_map, map_params, ...
 % M Popovic 2018
 %
 
-entropy_prev = get_map_entropy(grid_map);
+if (planning_params.do_adaptive_planning)
+    grid_map_interesting = ...
+        grid_map(:, :, planning_params.interesting_class_ind);
+    entropy_i = ...
+        get_map_entropy(grid_map_interesting(find(grid_map_interesting >= planning_params.lower_threshold)));
+else
+    entropy_i = get_map_entropy(grid_map);
+end
 point_prev = point_init;
 path = point_init;
 
@@ -34,9 +41,16 @@ while (planning_params.control_points > size(path, 1))
         point_eval = lattice(i, :);
         grid_map_eval = predict_map_update(point_eval, grid_map, ...
             map_params, planning_params);
-        entropy = get_map_entropy(grid_map_eval);
+        if (planning_params.do_adaptive_planning)
+            grid_map_interesting = ...
+                grid_map_eval(:, :, planning_params.interesting_class_ind);
+            entropy_f = ...
+                get_map_entropy(grid_map_interesting(find(grid_map_interesting >= planning_params.lower_threshold)));
+        else
+            entropy_f = get_map_entropy(grid_map_eval);
+        end
         
-        gain = entropy_prev - entropy;
+        gain = entropy_i - entropy_f;
         cost = max(pdist([point_prev; point_eval])/planning_params.max_vel, ...
             1/planning_params.measurement_frequency);
         %path_eval = [path; point_eval];

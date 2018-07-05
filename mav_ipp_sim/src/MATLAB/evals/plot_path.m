@@ -64,7 +64,7 @@ scatter3(p_meas(:,1), p_meas(:,2), p_meas(:,3), 60, colors_meas, 'filled');
 xlabel('x (m)')
 ylabel('y (m)')
 zlabel('z (m)')
-axis([-100 100 -145 145 0 160])
+axis([-110 110 -160 160 0 200])
 grid minor
 colormap jet
 c = colorbar;

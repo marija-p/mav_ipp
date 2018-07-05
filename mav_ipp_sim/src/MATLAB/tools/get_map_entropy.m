@@ -5,11 +5,9 @@ function [entropy_map] = get_map_entropy(grid_map)
 
 % Compute entropy for each cell.
 grid_map = logodds_to_prob(grid_map);
-grid_map = grid_map(2:end-1, 2:end-1, :);
 entropy_cells = -(grid_map.*log(grid_map) + (1-grid_map).*log(1-grid_map));
 
 % Sum over map.
 entropy_map = nansum(entropy_cells(:));
 
 end
-

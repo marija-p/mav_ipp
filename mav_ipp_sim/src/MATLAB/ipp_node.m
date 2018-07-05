@@ -43,6 +43,12 @@ time_elapsed = 0;
 point_prev = point_init;
 entropy_prev = get_map_entropy(grid_map);
 
+% Convert adaptive threshold from probability to likelihood.
+if (planning_params.do_adaptive_planning)
+    planning_params.lower_threshold = ...
+        prob_to_logodds(planning_params.lower_threshold);
+end
+
 img_counter = 0;
 
 %% Planning-Execution Loop %%
@@ -63,8 +69,8 @@ while (true)
     if (strcmp(opt_params.opt_method, 'cmaes'))
         path_optimized = optimize_with_cmaes(path, grid_map, map_params, ...
             planning_params, opt_params);
-            %obj = compute_objective(path_optimized, grid_map, map_params, planning_params);
-            %disp(['Objective after optimization: ', num2str(obj)]);
+            obj = compute_objective(path_optimized, grid_map, map_params, planning_params);
+            disp(['Objective after optimization: ', num2str(obj)]);
     elseif (strcmp(opt_params.opt_method, 'fmc'))
         path_optimized = optimize_with_fmc(path, grid_map, map_params, ...
             planning_params);
@@ -137,7 +143,6 @@ while (true)
         % Make sure delay between image/odom messages is small enough.
 %         delay = 100;
 %         while (abs(delay) > 0.07)
-%             disp('Here')
         odom_msg = receive(odom_sub);
 %             delay = (img_seg_msg.Header.Stamp.Nsec - odom_msg.Header.Stamp.Nsec)*10^-9;
 %         end
@@ -164,10 +169,17 @@ while (true)
         % Update the map.
         grid_map = take_measurement_at_point(x_odom_MAP_CAM, img_seg, grid_map, ...
             map_params, planning_params);
-        metrics.entropies = [metrics.entropies; get_map_entropy(grid_map)];
+        metrics.entropies = [metrics.entropies; get_map_entropy(grid_map(2:end-1, 2:end-1))];
         metrics.rmses = [metrics.rmses; get_map_rmse(grid_map, ground_truth)];
         metrics.odoms = [metrics.odoms; odom_msg];
         metrics.grid_maps(:,:,:,img_counter+1) = grid_map;
+        
+        grid_map_interesting = ...
+            grid_map(2:end-1, 2:end-1, planning_params.interesting_class_ind);
+        entropy = ...
+            get_map_entropy(grid_map_interesting(find(grid_map_interesting >= planning_params.lower_threshold)));
+        metrics.entropies_interesting = ...
+            [metrics.entropies_interesting; entropy];
         
     end
 
@@ -191,6 +203,6 @@ while (true)
         break;
     end
     
-    keyboard;
+   keyboard;
     
 end

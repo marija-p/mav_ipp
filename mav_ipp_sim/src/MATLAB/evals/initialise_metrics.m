@@ -8,5 +8,8 @@ metrics.times = [];
 metrics.path_travelled = [];
 metrics.grid_maps = [];
 
+% Adaptive planning.
+metrics.entropies_interesting = [];
+
 end
 
