@@ -39,19 +39,21 @@ if (size(points_meas,1) > 10)
     return;
 end
 
+penalty = 0;
+
 % Predict measurements along the path.
 for i = 1:size(points_meas,1)
     % Discard out-of-bounds solutions.
     submap_edge_size_env = get_submap_edge_size_env(points_meas(i,3), planning_params);
-    if (points_meas(i,1) + submap_edge_size_env.x/2) >= dim_x_env/2 || ...
-            (points_meas(i,1) - submap_edge_size_env.x/2) < -dim_x_env/2 || ...
-            (points_meas(i,2) + submap_edge_size_env.y/2) >= dim_y_env/2 || ...
-            (points_meas(i,2) - submap_edge_size_env.y/2) < -dim_y_env/2 || ...
-            points_meas(i,3) < planning_params.min_height || ...
-            points_meas(i,3) > planning_params.max_height
-        obj = Inf;
-        return;
-    end
+    
+    % Add soft penalty for measurement points being out-of-bounds.
+    penalty = max([(points_meas(i,1) + submap_edge_size_env.x/2 - dim_x_env/2), ...
+        -(points_meas(i,1) - submap_edge_size_env.x/2 + dim_x_env/2), ...
+        (points_meas(i,2) + submap_edge_size_env.y/2 - dim_y_env/2), ...
+        -(points_meas(i,2) - submap_edge_size_env.y/2 + dim_y_env/2), ...
+        -(points_meas(i,3) - planning_params.min_height), ...
+        (points_meas(i,3) - planning_params.max_height), 0]) + penalty;
+    
     % Discard crappy solutions.
     try
         grid_map = predict_map_update(points_meas(i,:), grid_map, ...
@@ -75,7 +77,8 @@ end
 gain = entropy_i - entropy_f;
 cost = max(get_trajectory_total_time(trajectory), ...
     1/planning_params.measurement_frequency);
-obj = -gain/cost;
+
+obj = -gain/cost + penalty;
 
 %disp(['Measurements = ', num2str(i)])
 %disp(['Gain = ', num2str(gain)])
