@@ -203,6 +203,7 @@ while (true)
         break;
     end
     
-   keyboard;
+   %keyboard;
+   saveas(gcf, ['map', num2str(img_counter,'%04d'), '.png']);
     
 end

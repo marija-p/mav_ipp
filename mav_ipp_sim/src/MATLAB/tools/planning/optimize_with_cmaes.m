@@ -14,7 +14,7 @@ opt = cmaes;
 opt.DispFinal = 'off';
 opt.LogModulo = 0;
 opt.TolFun = 1e-9;
-opt.IncPopSize = 1; %% Check this
+opt.IncPopSize = 2; %% Check this
 opt.PopSize = 25;
 opt.SaveVariables = 'off';
 opt.MaxIter = opt_params.max_iters;
@@ -32,6 +32,12 @@ path_initial = reshape(path(2:end,:)', [], 1);
 [path_optimized, obj_min, count_eval, stop_flag, out] = ...
     cmaes('optimize_points', path_initial, cov, opt, path(1,:), ...
     grid_map, map_params, planning_params);
+
+if isinf(obj_min)
+    disp('Cannot find a feasible solution!')
+    keyboard
+end
+
 path_optimized = reshape(path_optimized, 3, [])';
 path_optimized = [path(1,:); path_optimized];
 
