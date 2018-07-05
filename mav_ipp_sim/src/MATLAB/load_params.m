@@ -46,7 +46,7 @@ planning_params.lattice_height_increment = 40;
 planning_params.achievement_dist = 2;
 
 % TODO: active planning
-% Whether to use the threshold value for active planning
+% Whether to use the threshold value for active planning.
 planning_params.use_threshold = 1;
 
 opt_params.max_iters = 200;
