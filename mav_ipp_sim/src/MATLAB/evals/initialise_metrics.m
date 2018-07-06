@@ -10,6 +10,7 @@ metrics.grid_maps = [];
 
 % Adaptive planning.
 metrics.entropies_interesting = [];
+metrics.rmses_interesting = [];
 
 end
 

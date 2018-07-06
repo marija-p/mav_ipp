@@ -43,11 +43,11 @@ time_elapsed = 0;
 point_prev = point_init;
 entropy_prev = get_map_entropy(grid_map);
 
-% Convert adaptive threshold from probability to likelihood.
-if (planning_params.do_adaptive_planning)
-    planning_params.lower_threshold = ...
-        prob_to_logodds(planning_params.lower_threshold);
-end
+% Convert threshold for adaptive planning from probability to likelihood.
+planning_params.lower_threshold = prob_to_logodds(planning_params.lower_threshold);
+% Find cell indices of "interesting" regions based on ground truth.
+ground_truth_interesting = ground_truth(2:end-1,2:end-1,planning_params.interesting_class_ind);
+interesting_cells_ind = find(ground_truth_interesting == 1);
 
 img_counter = 0;
 
@@ -169,18 +169,21 @@ while (true)
         % Update the map.
         grid_map = take_measurement_at_point(x_odom_MAP_CAM, img_seg, grid_map, ...
             map_params, planning_params);
-        metrics.entropies = [metrics.entropies; get_map_entropy(grid_map(2:end-1, 2:end-1))];
-        metrics.rmses = [metrics.rmses; get_map_rmse(grid_map, ground_truth)];
+        metrics.entropies = [metrics.entropies; ...
+            get_map_entropy(grid_map(2:end-1, 2:end-1))];
+        metrics.rmses = [metrics.rmses; ...
+            get_map_rmse(grid_map(2:end-1,2:end-1), ground_truth(2:end-1,2:end-1))];
         metrics.odoms = [metrics.odoms; odom_msg];
         metrics.grid_maps(:,:,:,img_counter+1) = grid_map;
         
         grid_map_interesting = ...
             grid_map(2:end-1, 2:end-1, planning_params.interesting_class_ind);
-        entropy = ...
-            get_map_entropy(grid_map_interesting ...
-            (find(ground_truth(2:end-1,2:end-1,planning_params.interesting_class_ind) == 1)));
+        entropy = get_map_entropy(grid_map_interesting(interesting_cells_ind));
         metrics.entropies_interesting = ...
             [metrics.entropies_interesting; entropy];
+        rmse = get_map_rmse(grid_map_interesting(interesting_cells_ind), ...
+            ground_truth_interesting(interesting_cells_ind));
+        metrics.rmses_interesting = [metrics.rmses_interesting; rmse];
         
     end
 

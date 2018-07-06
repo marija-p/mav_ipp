@@ -11,6 +11,7 @@ times = metrics.times;
 entropies = metrics.entropies;
 rmses = metrics.rmses;
 entropies_interesting = metrics.entropies_interesting;
+rmses_interesting = metrics.rmses_interesting;
 
 ts = timeseries(entropies, times);
 ts_resampled = resample(ts, time_vector, 'zoh');
@@ -21,11 +22,14 @@ rmses_resampled = ts_resampled.data';
 ts = timeseries(entropies_interesting, times);
 ts_resampled = resample(ts, time_vector, 'zoh');
 entropies_interesting_resampled = ts_resampled.data';
+ts = timeseries(rmses_interesting, times);
+ts_resampled = resample(ts, time_vector, 'zoh');
+rmses_interesting_resampled = ts_resampled.data';
 
 if (do_plot)
 
     % Entropy
-    subplot(1,3,1)
+    subplot(2,2,1)
     hold on
     set(gca, ...
         'Box'         , 'off'     , ...
@@ -53,7 +57,7 @@ if (do_plot)
     hold off
 
     % RMSE
-    subplot(1,3,2)
+    subplot(2,2,2)
     hold on
     set(gca, ...
         'Box'         , 'off'     , ...
@@ -72,14 +76,14 @@ if (do_plot)
         'LooseInset'  , max(get(gca,'TightInset'), 0.02));
     
     plot(time_vector, rmses_resampled)
-    axis([0 time_vector(end) 0.1 0.4])
+    axis([0 time_vector(end) 0.1 0.6])
     h_xlabel = xlabel('Time (s)');
     h_ylabel = ylabel('RMSE');
     set([h_xlabel, h_ylabel], 'FontName'   , 'Helvetica');
     hold off
     
     % Entropy - interesting areas
-    subplot(1,3,3)
+    subplot(2,2,3)
     hold on
     set(gca, ...
         'Box'         , 'off'     , ...
@@ -98,16 +102,41 @@ if (do_plot)
         'LooseInset'  , max(get(gca,'TightInset'), 0.02));
     
     % Convert to bits.
-    % https://www.physicsforums.com/threads/converting-between-bits-nats-and-dits.521115/
     plot(time_vector, entropies_interesting_resampled*log2(exp(1)))
     axis([0 time_vector(end) 0 7000])
     h_xlabel = xlabel('Time (s)');
     h_ylabel = ylabel('Entropy - interesting areas (bits)');
     set([h_xlabel, h_ylabel], 'FontName'   , 'Helvetica');
     hold off
+
+    % RMSE - interesting areas
+    subplot(2,2,4)
+    hold on
+    set(gca, ...
+        'Box'         , 'off'     , ...
+        'TickDir'     , 'out'     , ...
+        'TickLength'  , [.02 .02] , ...
+        'XMinorTick'  , 'on'      , ...
+        'YMinorTick'  , 'off'      , ...
+        'YTickMode'   , 'auto'  , ...
+        'YGrid'       , 'on'      , ...
+        'XColor'      , [.3 .3 .3], ...
+        'YColor'      , [.3 .3 .3], ...
+        'YScale'      , 'linear'     , ...
+        'YGrid'       , 'on'      , ...
+        'LineWidth'   , 1         , ...
+        'FontSize'    , text_size , ...
+        'LooseInset'  , max(get(gca,'TightInset'), 0.02));
+    
+    plot(time_vector, rmses_interesting_resampled)
+    axis([0 time_vector(end) 0.4 1])
+    h_xlabel = xlabel('Time (s)');
+    h_ylabel = ylabel('RMSE - interesting areas');
+    set([h_xlabel, h_ylabel], 'FontName'   , 'Helvetica');
+    hold off
     
 end
 
-set(gcf, 'Position', [675   671   873   307])
+set(gcf, 'Position', [675   422   703   531])
 
 end
