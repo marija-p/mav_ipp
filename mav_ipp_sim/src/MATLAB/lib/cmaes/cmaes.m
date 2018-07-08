@@ -1435,11 +1435,11 @@ while isempty(stopflag)
   if fitness.sel(1) == fitness.sel(1+ceil(0.1+lambda/4))
     % isequalfuncvalues = 1; 
     if stopOnEqualFunctionValues
-      arrEqualFunvals = [countiter arrEqualFunvals(1:end-1)];
+      %arrEqualFunvals = [countiter arrEqualFunvals(1:end-1)];
       % stop if this happens in more than 33%
-      if arrEqualFunvals(end) > countiter - 3 * length(arrEqualFunvals)
-        stopflag(end+1) = {'equalfunvals'}; 
-      end
+      %if arrEqualFunvals(end) > countiter - 3 * length(arrEqualFunvals)
+      %  stopflag(end+1) = {'equalfunvals'}; 
+      %end
     else
       if flgWarnOnEqualFunctionValues
         warning(['Iteration ' num2str(countiter) ...

@@ -27,15 +27,15 @@ planning_params.sensor_fov_angle_x = 35.4;
 planning_params.sensor_fov_angle_y = 47.2;
 planning_params.min_height = 40;
 planning_params.max_height = 160;
-planning_params.max_vel = 15;        % [m/s]
-planning_params.max_acc = 20;        % [m/s^2]
+planning_params.max_vel = 10;        % [m/s]
+planning_params.max_acc = 10;        % [m/s^2]
 planning_params.time_budget = 5000;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
 planning_params.measurement_frequency = 0.1;
 
 % Number of control points for a polynomial (start point fixed)
-planning_params.control_points = 4;
+planning_params.control_points = 5;
 
 % Number of lattice points at lowest altitude level
 planning_params.lattice_min_height_points = 16;
@@ -43,7 +43,7 @@ planning_params.lattice_min_height_points = 16;
 planning_params.lattice_height_increment = 40;
 
 % Minimum distance before a waypoint is considered reached.
-planning_params.achievement_dist = 2;
+planning_params.achievement_dist = 1;
 
 % Whether to use the threshold value for adaptive planning.
 planning_params.do_adaptive_planning = 1;
@@ -53,12 +53,12 @@ planning_params.interesting_class_ind = 2;
 % are considered "interesting".
 planning_params.lower_threshold = 0.4;
 
-opt_params.max_iters = 400;
+opt_params.max_iters = 600;
 opt_params.opt_method = 'cmaes'; % 'fmc'/cmaes'/'none'/'bo'
 % Covariances in each search dimension
 opt_params.cov_x = 40;
-opt_params.cov_y = 60;
-opt_params.cov_z = 40;
+opt_params.cov_y = 50;
+opt_params.cov_z = 10;
 
 % Map resolution [m/cell]
 map_params.resolution = 5;

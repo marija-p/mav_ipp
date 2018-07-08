@@ -162,8 +162,8 @@ while (true)
         
         % Get segmented image.
         img_seg = readImage(img_seg_sub.LatestMessage);
-        imwrite(img_seg, fullfile([pwd, '/images/image', ...
-            num2str(img_counter,'%04d'), '.png']));
+        %imwrite(img_seg, fullfile([pwd, '/images/image', ...
+        %    num2str(img_counter,'%04d'), '.png']));
         img_counter = img_counter + 1;
         
         % Update the map.
