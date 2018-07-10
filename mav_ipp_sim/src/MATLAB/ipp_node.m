@@ -1,8 +1,7 @@
 % Initialise ROS comms.
 pose_pub = rospublisher('/firefly/command/pose', ...
     rostype.geometry_msgs_PoseStamped);
-pose_msg = rosmessage(pose_pub);
-
+pose_msg = rosmessage(pose_pub); 
 odom_sub = rossubscriber('/firefly/ground_truth/odometry');
 img_seg_sub = rossubscriber('/firefly/image_seg');
 pause(1);
