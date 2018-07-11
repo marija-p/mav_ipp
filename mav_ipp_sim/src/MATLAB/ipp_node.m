@@ -80,7 +80,7 @@ while (true)
         path_optimized = path;
     end
     disp('Path after optimization: ')
-    disp(path_optimized)
+    disp(path_optimized)    
 
     %% Plan Execution %%
     % Create polynomial trajectory through the control points.
