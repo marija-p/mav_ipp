@@ -49,30 +49,33 @@ coverage_altitude = 155; % Pattern 1 (halves)
 coverage_velocity = 2.5;
 coverage_acceleration = 10;
 
+boundary = 0;
+
 % Set starting point.
 submap_edge_size = get_submap_edge_size_env(coverage_altitude, ...
     planning_params);
-point = [-dim_x_env/2+submap_edge_size.x/2, ...
-    -dim_y_env/2+submap_edge_size.y/2, coverage_altitude];
+point = [-dim_x_env/2+submap_edge_size.x/2 + boundary, ...
+    -dim_y_env/2+submap_edge_size.y/2 + boundary, coverage_altitude];
 
 % Create plan (deterministic).
 path = point;
 i = 0;
 
-while (path(end,1) < (dim_x_env/2 - submap_edge_size.x/2))
+while (path(end,1) < (dim_x_env/2 - submap_edge_size.x/2 - boundary))
     
     % Move in y.
     if (mod(i,2) == 0)
-        while (path(end,2) < (dim_y_env/2) - submap_edge_size.y/2)
-            point = path(end,:) + [0, (submap_edge_size.y)/4, 0];
+        while (path(end,2) < (dim_y_env/2) - submap_edge_size.y/2 - boundary)
+            point = path(end,:) + [0, (submap_edge_size.y)/8, 0];
             path = [path; point];
         end
     else
-        while (path(end,2) > -dim_y_env/2 + submap_edge_size.y/2)
-            point = path(end,:) - [0, (submap_edge_size.y)/4, 0];
+        while (path(end,2) > -dim_y_env/2 + submap_edge_size.y/2 + boundary)
+            point = path(end,:) - [0, (submap_edge_size.y)/8, 0];
             path = [path; point];
         end
     end
+    path = path(1:end-1, :);
     
     % Move in x.
     point = path(end,:) + [submap_edge_size.x, 0, 0];
@@ -99,16 +102,26 @@ disp(['Total time taken for coverage: ', ...
 disp(['Total number of measurements: ', num2str(size(points_meas, 1))]);
 
 
+% Handle out-of-bounds measurement points.
 for i = 1:size(points_meas,1)
     
-    penalty = max([(points_meas(i,1) + submap_edge_size.x/2 - dim_x_env/2), ...
-        -(points_meas(i,1) - submap_edge_size.x/2 + dim_x_env/2), ...
-        (points_meas(i,2) + submap_edge_size.y/2 - dim_y_env/2), ...
-        -(points_meas(i,2) - submap_edge_size.y/2 + dim_y_env/2), 0]);
-    
-    if (penalty > 0)
-        disp(points_meas(i,:))
-        error(['Measurement point ', num2str(i), ' is out-of-bounds!'])
+    %     penalty = max([(points_meas(i,1) + submap_edge_size.x/2 - dim_x_env/2), ...
+    %         -(points_meas(i,1) - submap_edge_size.x/2 + dim_x_env/2), ...
+    %         (points_meas(i,2) + submap_edge_size.y/2 - dim_y_env/2), ...
+    %         -(points_meas(i,2) - submap_edge_size.y/2 + dim_y_env/2), 0.5]);
+    %     if (penalty > 0.5)
+    %         disp(points_meas(i,:))
+    %         error(['Measurement point ', num2str(i), ' is out-of-bounds!'])
+    %     end
+    if (points_meas(i,1) + submap_edge_size.x/2 > dim_x_env/2)
+        points_meas(i,1) = dim_x_env/2 - submap_edge_size.x/2;
+    elseif (points_meas(i,1) - submap_edge_size.x/2 < -dim_x_env/2)
+        points_meas(i,1) = -dim_x_env/2 + submap_edge_size.x/2;
+    end
+    if (points_meas(i,2) + submap_edge_size.y/2 > dim_y_env/2)
+        points_meas(i,2) = dim_y_env/2 - submap_edge_size.y/2;
+    elseif (points_meas(i,2) - submap_edge_size.y/2 < -dim_y_env/2)
+        points_meas(i,2) = -dim_y_env/2 + submap_edge_size.y/2;
     end
     
 end
