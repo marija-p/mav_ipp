@@ -200,3 +200,6 @@ for i = 1:size(points_meas,1)
     metrics.rmses_interesting = [metrics.rmses_interesting; rmse];
     
 end
+
+metrics.points_meas = points_meas;
+metrics.times = times_meas;

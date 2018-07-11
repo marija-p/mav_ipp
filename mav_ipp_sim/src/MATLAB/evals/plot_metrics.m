@@ -129,7 +129,7 @@ if (do_plot)
         'LooseInset'  , max(get(gca,'TightInset'), 0.02));
     
     plot(time_vector, rmses_interesting_resampled)
-    axis([0 time_vector(end) 0.3 0.6])
+    axis([0 time_vector(end) 0.1 0.6])
     h_xlabel = xlabel('Time (s)');
     h_ylabel = ylabel('RMSE - interesting areas');
     set([h_xlabel, h_ylabel], 'FontName'   , 'Helvetica');
