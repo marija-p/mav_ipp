@@ -29,7 +29,7 @@ planning_params.min_height = 40;
 planning_params.max_height = 160;
 planning_params.max_vel = 15;        % [m/s]
 planning_params.max_acc = 20;        % [m/s^2]
-planning_params.time_budget = 5000;  % [s]
+planning_params.time_budget = 400;  % [s]
 
 % Frequency at which to take measurements along a path [Hz]
 planning_params.measurement_frequency = 0.1;
@@ -46,7 +46,7 @@ planning_params.lattice_height_increment = 40;
 planning_params.achievement_dist = 1;
 
 % Whether to use the threshold value for adaptive planning.
-planning_params.do_adaptive_planning = 0;
+planning_params.do_adaptive_planning = 1;
 % Index of "interesting" class.
 planning_params.interesting_class_ind = 2;
 % Lower threshold for BVR layer: all cells with values above this level

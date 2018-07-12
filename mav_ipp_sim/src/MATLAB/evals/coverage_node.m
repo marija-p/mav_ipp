@@ -42,12 +42,12 @@ img_counter = 0;
 %% Coverage Planning %%
 
 % Fixed altitude for coverage pattern.
-coverage_altitude = 155; % Pattern 1 (halves)
+%coverage_altitude = 155; % Pattern 1 (halves)
 %coverage_altitude = 104.4; % Pattern 2 (thirds)
-%coverage_altitude = 39.17; % Pattern 3 (quarters)
+coverage_altitude = 39.17; % Pattern 3 (quarters)
 
-coverage_velocity = 2.5;
-coverage_acceleration = 10;
+coverage_velocity = 60;
+coverage_acceleration = 80;
 
 boundary = 0;
 
