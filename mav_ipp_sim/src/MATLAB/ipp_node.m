@@ -30,7 +30,8 @@ if (~exist('ground_truth'))
 end
 
 % First measurement location.
-point_init = [0, 0, 50];
+%point_init = [0, 0, 50];
+point_init = [-66.7,-99.4, 104.4];
 % Multi-resolution lattice.
 lattice = create_lattice(map_params, planning_params);
 % Occupancy grid - 3 layers for 3 classes.

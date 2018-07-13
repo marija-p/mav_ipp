@@ -46,7 +46,7 @@ planning_params.lattice_height_increment = 40;
 planning_params.achievement_dist = 1;
 
 % Whether to use the threshold value for adaptive planning.
-planning_params.do_adaptive_planning = 1;
+planning_params.do_adaptive_planning = 0;
 % Index of "interesting" class.
 planning_params.interesting_class_ind = 2;
 % Lower threshold for BVR layer: all cells with values above this level
@@ -59,6 +59,7 @@ opt_params.opt_method = 'cmaes'; % 'fmc'/cmaes'/'none'/'bo'
 opt_params.cov_x = 50;
 opt_params.cov_y = 60;
 opt_params.cov_z = 40;
+opt_params.seed = 2;
 
 % Map resolution [m/cell]
 map_params.resolution = 5;

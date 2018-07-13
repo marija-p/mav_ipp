@@ -18,7 +18,7 @@ opt.IncPopSize = 2; %% Check this
 opt.PopSize = 25;
 opt.SaveVariables = 'off';
 opt.MaxIter = opt_params.max_iters;
-opt.Seed = randi(2^10);
+opt.Seed = randi(2^opt_params.seed);
 % Set bounds and covariances.
 LBounds = [-dim_x_env/2;-dim_y_env/2;planning_params.min_height];
 UBounds = [dim_x_env/2;dim_y_env/2;planning_params.max_height];
