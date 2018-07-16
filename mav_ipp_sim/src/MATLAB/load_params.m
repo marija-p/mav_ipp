@@ -43,7 +43,7 @@ planning_params.lattice_min_height_points = 16;
 planning_params.lattice_height_increment = 40;
 
 % Minimum distance before a waypoint is considered reached.
-planning_params.achievement_dist = 1;
+planning_params.achievement_dist = 1.5;
 
 % Whether to use the threshold value for adaptive planning.
 planning_params.do_adaptive_planning = 0;
