@@ -1,5 +1,5 @@
 function [] = plot_metrics(metrics)
-% Plots logged informative metrics.
+% Plots logged informative metrics for a planning method.
 
 do_plot = 1;
 
