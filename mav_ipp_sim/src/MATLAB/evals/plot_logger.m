@@ -5,8 +5,8 @@ methods = fieldnames(logger);
 do_plot = 1;
 show_legend = 1;
 
-rescale_factor = 0.89;
-text_size = 10.5;
+rescale_factor = 0.9;
+text_size = 11;
 line_width = 1;
 plot_aspect_ratio = [1 2 1];
 
