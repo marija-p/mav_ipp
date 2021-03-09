@@ -1,1 +1,16 @@
 *.png
+mav_ipp_sim/deployment/.env
+.catkin_tools/
+.catkin_workspace
+build/
+catkin_simple/
+devel/
+eigen_checks/
+glog_catkin/
+logs/
+mav_comm/
+mav_control_rw/
+mav_ipp_sim/.catkin_tools/
+rotors_simulator/
+src/
+eigen_catkin/
