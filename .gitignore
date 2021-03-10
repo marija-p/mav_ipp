@@ -14,3 +14,4 @@ mav_ipp_sim/.catkin_tools/
 rotors_simulator/
 src/
 eigen_catkin/
+.idea/

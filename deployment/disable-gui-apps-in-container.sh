@@ -1,1 +1,1 @@
-xhost -local:`docker inspect --format='{{ .Config.Hostname }}' deployment_mav_ipp_sim_1`
+xhost -local:`docker inspect --format='{{ .Config.Hostname }}' mav_ipp_mav_ipp_sim_1`
