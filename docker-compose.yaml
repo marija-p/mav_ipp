@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+    mav_ipp_sim:
+        build: .
+        volumes:
+            - ${REPO_DIR}:/mav_ipp
+            - /tmp/.X11-unix:/tmp/.X11-unix:rw
+        environment:
+            - REPO_DIR=${REPO_DIR}
+            - GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}
+            - DISPLAY=unix${DISPLAY}
+            - QT_X11_NO_MITSHM=1
+        command: "sleep 5h"
