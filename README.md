@@ -12,28 +12,30 @@ Please make sure to install [Docker](https://docs.docker.com/get-docker/) and [d
 For a fully automatic installation of third party dependencies, ROS workspace initialization, and compilation of the framework, run:
 ```commandline
 docker-compose build
+./compile.sh
 ```
 
 To recompile the framework from a clean workspace, use:
 ```commandline
-docker-compose build --build-arg clean_ws
+./clean.sh
+./compile.sh
 ```
 
 To run the framework/container, use:
 ```commandline
-./run_mav_ipp.sh <LAUNCH_FILENAME>
+./run.sh <LAUNCH_FILENAME>
 ```
 where `<LAUNCH_FILENAME>` is an optional argument and by default set to `mav_ipp_sim.launch`.
 
 To stop the container, use:
 
 ```commandline
-./stop_mav_ipp.sh
+./stop.sh
 ```
 
 To connect to the running pipeline/container with a bash, use:
 ```commandline
-./deployment/connect_to_container.sh
+./connect.sh
 ```
 
 ### Setup without Docker-Compose
@@ -46,4 +48,3 @@ catkin build
 source devel/setup.bash
 roslaunch mav_ipp_sim/launch/<LAUNCH_FILENAME>
 ```
-

@@ -1,5 +1,5 @@
 SRC_DIR="src/"
-if [ ! -d "$SRC_DIR" ]; then
+if [ ! -d "${SRC_DIR}" ]; then
 	echo "Create workspace directory ${SRC_DIR}..."
 	mkdir $SRC_DIR
 fi
