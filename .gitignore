@@ -1,5 +1,5 @@
 *.png
-mav_ipp_sim/deployment/.env
+.env
 .catkin_tools/
 .catkin_workspace
 build/
