@@ -1,0 +1,7 @@
+osrf-pycommon
+numpy
+matplotlib
+scipy
+opencv-python
+PyYAML
+scikit-image

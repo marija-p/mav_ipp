@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Inkyu Sa, enddl22@gmail.com
 # Marija Popovic, mpopovic514@gmail.com
 # June-July 2018
@@ -15,7 +15,7 @@ import cv2
 import sys
 import time
 import rospy
-import Queue
+import queue
 import std_srvs.srv
 import skimage
 from sensor_msgs.msg import Image
@@ -67,7 +67,7 @@ class segNet(object):
 		self.mav_pose = data.pose.pose
 	
 	def processImgCallback(self, req):
-		print 'Processing images...'
+		print("Processing images...")
 
 		# Crop orthomosaic to get image inputs.
 		mav_position = self.mav_pose.position
@@ -115,7 +115,7 @@ class segNet(object):
 		self.net.forward(dataIR1=input_image_ir1*255, dataIR2=input_image_ir2*255,
 			dataIR3=input_image_ir3*255, dataRGB=input_image_rgb*255)
 		end = time.time()
-		print '%30s' % 'Executed SegNet in ', str((end - start)*1000), 'ms'
+		print(f"Executed SegNet in {str((end - start)*1000)} ms")
 
 		# Result processing.
 		start = time.time()
@@ -137,7 +137,7 @@ class segNet(object):
 		segmentation_rgb[:,:,1] = g
 		segmentation_rgb[:,:,2] = r
 		end = time.time()
-		print '%30s' % 'Processed results in ', str((end - start)*1000), 'ms\n'
+		print(f"Processed results in {str((end - start)*1000)} ms\n")
 
 		skimage.io.imsave(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 			"test", "image_out%04i.png" %self.img_counter), np.uint8(segmentation_rgb*255))
