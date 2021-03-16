@@ -1,4 +1,4 @@
-LAUNCH_FILENAME=${1:-mav_ipp_sim_segnet.launch}
+LAUNCH_FILENAME=${1:-noetic_mav_ipp_sim_segnet.launch}
 echo "Start with launch file ${LAUNCH_FILENAME}"
 docker-compose down
 docker-compose up -d
