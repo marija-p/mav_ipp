@@ -46,10 +46,14 @@ To connect to the running pipeline/container with a bash, use:
 
 ### Setup without Docker-Compose
 
-If you would like to install and run the framework directly in your usual host machine's ROS environment, execute the following steps:
+If you would like to install and run the framework directly in your usual host machine's ROS environment, execute the following steps (requires Ubuntu 20.04 and ROS noetic):
 ```commandline
+sudo apt-get update
+sudo apt-get install -y nano python3-catkin-tools python3-pip ros-noetic-octomap-msgs python3-tk caffe-cpu ros-noetic-octomap-ros protobuf-compiler libgoogle-glog-dev liblapacke-dev libtool libtool-bin
+pip3 install -r requirements.txt
 ./deployment/install-third-party-dependencies.sh
 ./deployment/init-workspace.sh
+source /opt/ros/noetic/setup.bash
 catkin build
 source devel/setup.bash
 roslaunch mav_ipp_sim/launch/<LAUNCH_FILENAME>
