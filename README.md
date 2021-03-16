@@ -21,6 +21,12 @@ To recompile the framework from a clean workspace, use:
 ./compile.sh
 ```
 
+Create a file named `.env` and set the env-variables expected by the docker container:
+
+```commandline
+REPO_DIR=/path/to/your/repo/
+```
+
 To run the framework/container, use:
 ```commandline
 ./run.sh <LAUNCH_FILENAME>
