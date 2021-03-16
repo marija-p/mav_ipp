@@ -31,7 +31,7 @@ To run the framework/container, use:
 ```commandline
 ./run.sh <LAUNCH_FILENAME>
 ```
-where `<LAUNCH_FILENAME>` is an optional argument and by default set to `mav_ipp_sim.launch`.
+where `<LAUNCH_FILENAME>` is an optional argument and by default set to `noetic_mav_ipp_sim_segnet.launch`.
 
 To stop the container, use:
 
