@@ -51,6 +51,11 @@
       <remap from="odometry" to="ground_truth/odometry" />
       <rosparam file="$(find mav_lowlevel_attitude_controller)/resources/PID_attitude_$(arg mav_name).yaml" />
     </node>
+
+    <!-- Start SegNet -->
+    <node name="segnet" pkg="mav_ipp_sim" type="py3SegNet.py" output="screen">
+      <remap from="odometry" to="ground_truth/odometry" />
+    </node>
   </group>
 
 </launch>

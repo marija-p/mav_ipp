@@ -30,7 +30,7 @@
         <material>
           <script>
             <uri>model://rit18/materials/scripts/</uri>
-	    <uri>model://rit18/materials/textures</uri>
+	    <uri>model://rit18/materials/textures/</uri>
             <name>RIT18/Image</name>
           </script>
         </material>
